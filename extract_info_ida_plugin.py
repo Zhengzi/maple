@@ -2,11 +2,8 @@ from idautils import *
 from idaapi import *
 import networkx as nx
 
-#iteratively loop over every basic block to get info
+#iteratively loop over every basic block to get cfg within one function, one basic block will be a node in the graph
 def extract_intra_function_cfg():
-
-	#wait until IDA finishing loading the project
-	idaapi.autoWait()
 	
 	#loop over every segments
 	#seg: the starting address for each segments
@@ -27,6 +24,7 @@ def extract_intra_function_cfg():
 			#In IDA same basic block will be created serveral times. When adding basic block into the networkx graph,
 			#duplicated node will be added. In order to solve this, I use a array to store only one copy of basic block.
 			#The same basic block will have the same starting address
+			#TODO: use the start address of baisc block to replace the hack
 			tmp_bbs = []
 			
 			#flag FC_PREDS is to get the backward info 
@@ -41,7 +39,8 @@ def extract_intra_function_cfg():
 				if flag:
 					tmp_bbs.append(bb)
 					
-				#TODO use own basicblock class to wrap the ida pro basic block class
+				#TODO: use own basicblock class to wrap the ida pro basic block class
+				
 				cfg.add_node(bb)
 				
 				preds = bb.preds()
@@ -84,11 +83,48 @@ def extract_intra_function_cfg():
 			#endtest
 			
 	return
-	
+
+#get the function call cfg, in which a function starting address is a cfg node	
 def extract_inter_function_cfg():
+	
+	#loop over every segments
+	#seg: the starting address for each segments
+	for seg in Segments():	
+	
+		if SegName(seg) == ".text":
+			
+			#initialized a directed graph to store cfg
+			cfg = nx.DiGraph()
+			
+			functions = Functions(seg)		
+			for func_ea in functions:		
+				
+				cfg.add_node(func_ea)
+				
+				for ref in CodeRefsTo(func_ea, 1):
+					calling_func = get_func(ref)
+					if not calling_func:
+						continue
+					calling_func_startEA = calling_func.startEA
+					cfg.add_edge(calling_func_startEA, func_ea)
+			
+			#for ref in CodeRefsFrom(func_ea, 1):
+			#	print "  calling %s(0x%x)" % (GetFunctionName(ref), ref)
+			
+			#testing
+			print cfg.number_of_nodes()
+			print cfg.number_of_edges()
+			#nodes = cfg.nodes()
+			#for node in nodes:
+			#	print node
+			#endtesting
 	return
 	
 def main():
+	
+	#wait until IDA finishing loading the project
+	idaapi.autoWait()
+	
 	extract_intra_function_cfg()
 	extract_inter_function_cfg()
 	print "Finish"
