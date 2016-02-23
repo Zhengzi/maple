@@ -7,6 +7,8 @@ First functionality to be achieved is binary backward slicing.
 
 Usage: open ida pro -> load script -> select this file
 
-2. Working on the backward slcing for x86. Stop here, and continue tomorrow
+2. Working on the backward slcing for vex.
 
-3. Future work: apply the semetic learning for binary instruction groups.
+3. Finish convert x86 to vex
+
+4. Future work: apply the semetic learning for binary instruction groups.
