@@ -5,6 +5,7 @@ class BasicBlock:
 		self.instr = None
 		self.func = None
 		#self.program = None
+		self.vex = None
 		
 	def write_to_file(self):
 		return

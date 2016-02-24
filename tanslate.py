@@ -12,6 +12,8 @@ def creat_bb_instance(bb, func_name):
 	bb_ins.end_address = bb.endEA		
 	bb_ins.instr = tanslate(bb)
 	bb_ins.func = func_name
+	
+	#hard code the address for testing purpose
 	pickle.dump(bb_ins, file("C:\\Users\\user1\\Desktop\\test\\" + str(hex(bb.startEA))+".pickle",'w'))
 	#bb.program = None
 	
@@ -23,7 +25,7 @@ def tanslate(bb):
 			#I give up now, so I use a very silly way to do this.
 			#find a starting address 
 			#find a ending address
-			#then find all the byte from them
+			#then find all the bytes between them
 			instr = ""
 			for ea in range(ItemHead(head), ItemEnd(head)):
 				instr += format_instr(Byte(ea))
