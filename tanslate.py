@@ -48,12 +48,16 @@ def format_instr(byte):
 def main():
 	for seg in Segments():		
 		if SegName(seg) == ".text":
-			functions = Functions(seg)		
-			for func_ea in functions:		
-				print GetFunctionName(func_ea)
-				for bb in FlowChart(get_func(func_ea)):
-				#tanslate(bb)
-					creat_bb_instance(bb, GetFunctionName(func_ea))
+			functions = Functions(seg)					
+			for func_ea in functions:	
+				
+				#fix: the Functions method will return functions fall outside the ".text" segment
+				#we need to check the Segname again to remove the "extern" part of functions
+				if SegName(func_ea) == ".text":		
+					print GetFunctionName(func_ea)
+					for bb in FlowChart(get_func(func_ea)):
+					#tanslate(bb)
+						creat_bb_instance(bb, GetFunctionName(func_ea))
 	return
 
 
