@@ -73,7 +73,7 @@ def extract_intra_function_cfg():
 							tmp_bbs.append(succs_block)
 							
 						cfg.add_edge(bb, succs_block)
-						
+			'''			
 			#testing
 			print cfg.number_of_nodes()
 			print cfg.number_of_edges()
@@ -81,7 +81,7 @@ def extract_intra_function_cfg():
 			for node in nodes:
 				print node.startEA			
 			#endtest
-			
+			'''
 	return
 
 #get the function call cfg, in which a function starting address is a cfg node	
@@ -89,19 +89,21 @@ def extract_inter_function_cfg():
 	
 	#loop over every segments
 	#seg: the starting address for each segments
+	
+	#initialized a directed graph to store cfg
+	cfg = nx.DiGraph()
+	
 	for seg in Segments():	
 	
-		if SegName(seg) == ".text":
-			
-			#initialized a directed graph to store cfg
-			cfg = nx.DiGraph()
+		if SegName(seg) == ".text" or SegName(seg) == ".plt":
 			
 			functions = Functions(seg)		
-			for func_ea in functions:		
+			for func_ea in functions:	
 				
+				#It will add some isolated node into the graph
 				cfg.add_node(func_ea)
 				
-				for ref in CodeRefsTo(func_ea, 1):
+				for ref in CodeRefsTo(func_ea, 1):				
 					calling_func = get_func(ref)
 					if not calling_func:
 						continue
@@ -111,13 +113,29 @@ def extract_inter_function_cfg():
 			#for ref in CodeRefsFrom(func_ea, 1):
 			#	print "  calling %s(0x%x)" % (GetFunctionName(ref), ref)
 			
-			#testing
-			print cfg.number_of_nodes()
-			print cfg.number_of_edges()
-			#nodes = cfg.nodes()
-			#for node in nodes:
-			#	print node
-			#endtesting
+	#testing
+	#print cfg.number_of_nodes()
+	#print cfg.number_of_edges()
+	#nodes = cfg.nodes()
+	#for node in nodes:
+	#	print node
+	#endtesting
+	
+	return cfg
+
+def count_in_out_edge(cfg):	
+	print "number of functions: " + str(cfg.number_of_nodes())
+	print "number of total call edges: " + str(cfg.number_of_edges())
+	for node in cfg.nodes():
+		func_name = GetFunctionName(node)
+		#print "function: " + func_name + " out_degree: " + str(cfg.out_degree(node)) + " in_degree: " + str(cfg.in_degree(node))
+		out_degree = cfg.out_degree(node)
+		in_degree  = cfg.in_degree(node)
+		ratio = -1
+		if in_degree + out_degree > 0:
+			ratio = (float)(out_degree)/(float)(in_degree + out_degree)
+		#manaully set the longest function name to 50 char, largest number of func call to 9999
+		print 'function: {0:50} out_degree: {1:4d} in_degree: {2:4d} ratio: {3:6f}'.format(func_name, out_degree, in_degree, ratio)
 	return
 	
 def main():
@@ -126,7 +144,8 @@ def main():
 	idaapi.autoWait()
 	
 	extract_intra_function_cfg()
-	extract_inter_function_cfg()
+	func_cfg = extract_inter_function_cfg()
+	count_in_out_edge(func_cfg)
 	print "Finish"
 		
 if __name__ == '__main__':
