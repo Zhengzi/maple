@@ -138,6 +138,70 @@ def count_in_out_edge(cfg):
 		print 'function: {0:50} out_degree: {1:4d} in_degree: {2:4d} ratio: {3:6f}'.format(func_name, out_degree, in_degree, ratio)
 	return
 	
+def count_in_out_edge_without_api(cfg, api_list):	
+	#print "number of functions: " + str(cfg.number_of_nodes())
+	#print "number of total call edges: " + str(cfg.number_of_edges())
+	for node in cfg.nodes():
+		func_name = GetFunctionName(node)
+
+		out_degree = 0
+		succs = cfg.successors(node)
+		for item in succs:
+			f_name = GetFunctionName(item)
+			if f_name in api_list:
+				continue
+			out_degree += 1
+		
+		in_degree = 0
+		preds  = cfg.predecessors(node)
+		for item in preds:
+			f_name = GetFunctionName(item)
+			if f_name in api_list:
+				continue
+			in_degree += 1
+					
+		ratio = -1
+		if in_degree + out_degree > 0:
+			ratio = (float)(out_degree)/(float)(in_degree + out_degree)
+		#manaully set the longest function name to 50 char, largest number of func call to 9999
+		print 'function: {0:50} out_degree: {1:4d} in_degree: {2:4d} ratio: {3:6f}'.format(func_name, out_degree, in_degree, ratio)
+	return
+	
+def _get_function_list():
+	func_list = []
+	for seg in Segments():	
+		if SegName(seg) == ".text":
+			functions = Functions(seg)		
+			for func_ea in functions:	
+				
+				func_name = GetFunctionName(func_ea)
+				func_list.append(func_name)		
+	f = open('C:\\Users\\Xu Zhengzi\\Desktop\\func_list.txt','a')
+	for item in func_list:
+		f.write(item)
+		f.write("\n")
+	f.close
+	return func_list
+	
+def load_func_list():
+	func_list = []
+	f = open('C:\\Users\\Xu Zhengzi\\Desktop\\func_list.txt','r')
+	lines = f.readlines()
+	for item in lines:
+		function_name = item[:-1]
+		func_list.append(function_name)
+	f.close
+	
+	#process the list item
+	#hack replace the func name with .func name
+	#it may not be corret all the time
+	func_list_dot = []
+	for item in func_list:
+		func_dot_name = "." + item[1:]
+		func_list_dot.append(item)
+		func_list_dot.append(func_dot_name)
+	return func_list_dot
+	
 def main():
 	
 	#wait until IDA finishing loading the project
@@ -145,7 +209,10 @@ def main():
 	
 	extract_intra_function_cfg()
 	func_cfg = extract_inter_function_cfg()
-	count_in_out_edge(func_cfg)
+	#count_in_out_edge(func_cfg)
+	#_get_function_list()
+	func_list = load_func_list()
+	count_in_out_edge_without_api(func_cfg, func_list)
 	print "Finish"
 		
 if __name__ == '__main__':
