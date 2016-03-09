@@ -121,15 +121,18 @@ def Ndss_imp():
 	
 		if SegName(seg) == ".text" or SegName(seg) == ".plt":
 	
-			#functions = Functions(seg)
-			#for func_ea in functions:				
+			functions = Functions(seg)
+			for func_ea in functions:				
 				bb_count = 0
 				instr_count = 0
-				func_ea = here()
+				#func_ea = here()
 				
-				print FuncItems(func_ea)
-				#getStack(func_ea)
-				var_count = getStack(func_ea)
+				
+				size = GetFrameLvarSize(func_ea)
+				
+				var_count = 0
+				if size > 0:
+					var_count = getStack(func_ea)
 				#print len(list(CodeRefsTo(func_ea, 1)))
 				#print hex(func_ea)
 				redirection_count = 0
@@ -176,7 +179,7 @@ def Ndss_imp():
 	print "var_count: " + str(var_count)
 	print "redirection_count: " + str(redirection_count)
 
-	
+#this checks the val plus the args of a given func adddress	
 def getStack(address):
 	'gets variables used on the stack'
 	# Related reads and/or pointers on stacks in IDA
