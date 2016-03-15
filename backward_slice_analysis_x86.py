@@ -1,6 +1,7 @@
 from idautils import *
 from idaapi import *
 import register
+import re
 
 #This file aims to perform the static backward slicing on x86 instruction set
 #TODO: add backward slcing functionality based on vex IR instead of x86
@@ -38,8 +39,36 @@ def preds(ins):
 		if new_ins == ins:
 			break
 		
-		preds
-
+		
+def taint():
+	#get_s
+	lines = [
+	"15 | ------ IMark(0x80495b8, 2, 0) ------",
+	"16 | t2 = GET:I8(eax)",
+	"17 | t1 = GET:I8(eax)",
+	"18 | t0 = And8(t2,t1)",
+	"19 | PUT(cc_op) = 0x0000000d",
+	"20 | t3 = 8Uto32(t0)",
+	"21 | PUT(cc_dep1) = t3",
+	"22 | PUT(cc_dep2) = 0x00000000",
+	"23 | PUT(cc_ndep) = 0x00000000",
+	"24 | PUT(eip) = 0x080495ba",
+	"25 | ------ IMark(0x80495ba, 6, 0) ------",
+	"26 | t5 = GET:I32(cc_op)",
+	"27 | t6 = GET:I32(cc_dep1)",
+	"28 | t7 = GET:I32(cc_dep2)",
+	"29 | t8 = GET:I32(cc_ndep)",
+	"30 | t9 = x86g_calculate_condition(0x00000004,t5,t6,t7,t8):Ity_I32",
+	"31 | t4 = 32to1(t9)",
+	"32 | if (t4) { PUT(eip) = 0x8049735L; Ijk_Boring }",
+	"33 | PUT(eip) = 0x080495c0",
+	"34 | t10 = GET:I32(eip)"
+	]
+	queue = []
+	for line in lines:
+		m = re.search('t[0-9]+', line)
+		if m:
+			print m.group(0)
 
 		
 def getfunction(ins):
@@ -53,4 +82,5 @@ def main():
 	return
 	
 if __name__ == '__main__':
-    main()
+    #main()
+	taint()
