@@ -3,6 +3,7 @@ class BasicBlock:
 		self.start_address = None
 		self.end_address = None
 		self.instr = None
+		self.instr_hex = None
 		self.func = None
 		#self.program = None
 		self.vex = None

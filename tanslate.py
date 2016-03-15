@@ -4,19 +4,61 @@ from idautils import *
 from idaapi import *
 from entity_class_def import BasicBlock as bb_class
 import pickle
+import struct
 
 
-def creat_bb_instance(bb, func_name):
-	bb_ins = bb_class(5)
+def create_bb_instance(bb, func_name):
+	bb_ins = bb_class()
 	bb_ins.start_address = bb.startEA
 	bb_ins.end_address = bb.endEA		
 	bb_ins.instr = tanslate(bb)
+	
+	#tmp_dic = tanslate_strict(bb)
+	#for key,value in 
+	#bb_ins.instr_hex = tanslate_hex(bb)
 	bb_ins.func = func_name
 	
 	#hard code the address for testing purpose
-	pickle.dump(bb_ins, file("C:\\Users\\user1\\Desktop\\test\\" + str(hex(bb.startEA))+".pickle",'w'))
+	pickle.dump(bb_ins, file("C:\\Users\\Xu Zhengzi\\Desktop\\test\\" + str(hex(bb.startEA))+".pickle",'w'))
 	#bb.program = None
 	
+#this define the strict basic blocks
+#asumption is that the basic block only is divided by the "call", in fact there is others.
+#FIX: add other seperater support
+def create_strict_bb_instances(bb, func_name):
+	tmp_dic = tanslate_strict(bb)
+	for key, value in tmp_dic.iteritems():
+		bb_ins = bb_class()
+		bb_ins.start_address = key
+		#bb_ins.end_address = bb.endEA		
+		bb_ins.instr = value
+		bb_ins.func = func_name
+		pickle.dump(bb_ins, file("C:\\Users\\Xu Zhengzi\\Desktop\\test\\" + str(hex(key))+".pickle",'w'))
+	
+def tanslate_strict(bb):
+	instructions = {}
+	tmp = []
+	flag = True
+	startadd = ""
+	for head in Heads(bb.startEA,bb.endEA):
+		if isCode(getFlags(head)):						
+			if flag:
+				startadd = head
+				flag = False
+			
+			instr = ""
+			for ea in range(ItemHead(head), ItemEnd(head)):
+				instr += format_instr(Byte(ea))
+			tmp.append(instr)
+			
+			mnem = GetMnem(head)
+			if mnem == "call":
+				instructions[startadd] = tmp
+				tmp = []
+				flag = True
+	if tmp:
+		instructions[startadd] = tmp
+	return 	instructions							
 	
 def tanslate(bb):
 	instruction = []
@@ -29,15 +71,16 @@ def tanslate(bb):
 			instr = ""
 			for ea in range(ItemHead(head), ItemEnd(head)):
 				instr += format_instr(Byte(ea))
-			
 			#Get the vex representation of the x86 code
 			#need linux enviroment to install pyvex pacakage			
 			#irsb = pyvex.IRSB(instr, 0x400000, archinfo.ArchX86())
-			print instr
+			#print instr
 			instruction.append(instr)
 			
 	return 	instruction	
 	#irsb = pyvex.IRSB(bb, archinfo.VexArchX86)
+	
+	
 
 #format the instr convert "0x4" to "\x04"	
 def format_instr(byte):
@@ -46,6 +89,7 @@ def format_instr(byte):
 		s = s[:2] + '0' + s[2:]
 	s = '\\' + s[1:]
 	return s
+	
 	
 def main():
 	for seg in Segments():		
@@ -59,9 +103,11 @@ def main():
 					print GetFunctionName(func_ea)
 					for bb in FlowChart(get_func(func_ea)):
 					#tanslate(bb)
-						creat_bb_instance(bb, GetFunctionName(func_ea))
+						#create_bb_instance(bb, GetFunctionName(func_ea))
+						create_strict_bb_instances(bb, GetFunctionName(func_ea))
 	return
 
 
 if __name__ == '__main__':
     main()
+	#ss()

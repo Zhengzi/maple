@@ -151,6 +151,7 @@ def count_in_out_edge(cfg):
 def find_the_number_of_indirect_call():
 	count = 0
 	count_memcpy = 0
+	
 	for seg in Segments():	
 		
 		if SegName(seg) == ".text":
@@ -187,7 +188,7 @@ def find_the_number_of_indirect_call():
 					flag1 = False
 					flag2 = False
 
-	print count_memcpy
+	print count
 	return
 	
 def count_in_out_edge_without_api(cfg, api_list):	

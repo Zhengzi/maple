@@ -13,7 +13,13 @@ def convert_x86_to_vex(bb):
 	for ins in bb.instr:
 		instructions += ins
 		
-	irsb = pyvex.IRSB(instructions, bb.startEA, archinfo.ArchX86())
+	#irsb = pyvex.IRSB(instructions, bb.start_address, archinfo.ArchX86())
+	replaced = re.sub(r'\\x', '', instructions)
+
+	instructions = replaced.decode("hex")
+
+	irsb = pyvex.IRSB(instructions, 0x4000000, archinfo.ArchX86())
+	#irsb = pyvex.IRSB("\x80\x78\x07\x00\x75\xb3", 0x4000000, archinfo.ArchX86())
 	bb.vex = irsb
 	
 	#testing
