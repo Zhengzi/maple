@@ -2,6 +2,7 @@ from idautils import *
 from idaapi import *
 import register
 import re
+import networkx as nx
 
 #This file aims to perform the static backward slicing on x86 instruction set
 #TODO: add backward slcing functionality based on vex IR instead of x86
@@ -40,7 +41,7 @@ def preds(ins):
 			break
 		
 		
-def taint():
+def taint(lines):
 	#get_s
 	lines = [
 	"15 | ------ IMark(0x80495b8, 2, 0) ------",
@@ -65,10 +66,25 @@ def taint():
 	"34 | t10 = GET:I32(eip)"
 	]
 	queue = []
+	cfg = nx.DiGraph()
 	for line in lines:
-		m = re.search('t[0-9]+', line)
-		if m:
-			print m.group(0)
+		
+		if "if" in line:
+			key = re.findall('t[0-9]+|cc_[a-z]+[0-9]?|eax|ebx|ecx|edx|esi|edi|esp|ebp', line)
+		elif "=" in line:
+			ls = line.split('=',1)		
+			rhs = re.findall('t[0-9]+|cc_[a-z]+[0-9]?|eax|ebx|ecx|edx|esi|edi|esp|ebp', ls[0])
+			lhs = re.findall('t[0-9]+|cc_[a-z]+[0-9]?|eax|ebx|ecx|edx|esi|edi|esp|ebp', ls[1])
+		
+			
+			if rhs and lhs:
+				r = rhs[0]
+				#print lhs.captures(1)
+				for item in lhs:
+					cfg.add_edge(r, item)
+				
+	lst = list(nx.dfs_postorder_nodes(cfg, key))
+	print lst
 
 		
 def getfunction(ins):
