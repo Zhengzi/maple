@@ -2,6 +2,7 @@ import re
 import networkx as nx
 from zss import simple_distance, Node
 from operator import itemgetter
+import time
 
 #from idautils import *
 #from idaapi import *
@@ -107,11 +108,58 @@ def extract_intra_function_cfg(name):
 							
 						cfg.add_edge(bb.startEA, succs_block.startEA)
 	nx.write_gml(cfg, "C:\\Users\\Xu Zhengzi\\Desktop\\tt\\second.gml")
-	return cfg	
+	return cfg
 	
-def load():
-	f = open("C:\\Users\\Xu Zhengzi\\Desktop\\tt\\f.txt", 'r')
-	s = open("C:\\Users\\Xu Zhengzi\\Desktop\\tt\\s.txt", 'r')
+import os	
+
+def go_diff(path1,path2):
+	l1 = []
+	l2 = []
+	total_count = 0
+	count = 0
+	
+	for file in os.listdir(path1):
+		if file.endswith(".txt"):
+			l1.append(file)
+			
+	for file in os.listdir(path2):
+		if file.endswith(".txt"):
+			l2.append(file)
+	
+	for i in range(len(l1)):
+		for j in range(len(l2)):
+			if l1[i] == l2[j]:
+				f = load(path1 +  l1[i] , path2 + l2[j] , l1[i])	
+				total_count += 1
+				if f:
+					count += 1
+	print total_count
+	print count
+	
+def label_only_jumps():
+	pass
+	
+def label_only_constant_change():
+	pass
+	
+def count_number_of_checks(l1,l2):
+	count = 0
+	for s in l1:
+		ss = s.split(',')
+		for sss in ss:
+			if "cmp" in sss or "test" in sss:
+				count += 1
+				
+	for s in l2:
+		ss = s.split(',')
+		for sss in ss:
+			if "cmp" in sss or "test" in sss:
+				count += 1
+	return count
+			
+def load(path1,path2,name):
+	f = open(path1, 'r')
+	s = open(path2, 'r')
 	#cfg1 = nx.read_gml("C:\\Users\\Xu Zhengzi\\Desktop\\tt\\fisrt.gml")
 	#cfg2 = nx.read_gml("C:\\Users\\Xu Zhengzi\\Desktop\\tt\\second.gml")
 	f_list = []
@@ -217,13 +265,23 @@ def load():
 	#l11 = [x for x in l11 if x != "nop"]
 	#res = [item for sublist in l11 for item in sublist]
 	#res = [x for x in res if x != "nop"]
-	print "**********"
-	print res_f
-	print ff
-	print "**********"
-	print res_s
-	print ss
-	print "**********"
+	if res_f or ff or res_s or ss:
+		c1 = count_number_of_checks(res_s, ss)
+		c0 = count_number_of_checks(res_f, ff)
+		c = c1 - c0
+		#print c
+		if c > 0 and c < 4:
+			print name
+			print "**********"
+			print res_f
+			print ff
+			print "**********"
+			print res_s
+			print ss
+			print "**********\n"
+			f.close()
+			s.close()
+			return True
 	#print l22
 		#p = [x for x in p if not x == "nop"]
 		#if p:
@@ -238,6 +296,7 @@ def load():
 	'''
 	f.close()
 	s.close()
+	return False
 	
 def crazy(s1,s2):	
 	l1 = s1.split(',')
@@ -273,23 +332,8 @@ def tree_edit_distance(s1,s2):
 	
 	return simple_distance(n1, n2)
 	
-def Ndss_imp():
-	func_ea = here()
-	f = open("C:\\Users\\Xu Zhengzi\\Desktop\\tt\\x.txt", 'w')
-	for bb in FlowChart(get_func(func_ea), flags=FC_PREDS):
-		list = []
-		for head in Heads(bb.startEA,bb.endEA):
-			if isCode(getFlags(head)):
-				mnem = GetMnem(head)
-				list.append(mnem)
-				
-		f.write(','.join(list))
-		f.write('\n')
-	f.close()
-			
-if __name__ == '__main__':
-	#extract_intra_function_cfg("first")
-	#extract_intra_function_cfg("second")
-	#Ndss_imp()
-	load()
-	#tree_edit_distance()
+if __name__ == '__main__':	
+	t1 = time.time()
+	go_diff("C:\\Users\\Xu Zhengzi\\Desktop\\opensslg\\","C:\\Users\\Xu Zhengzi\\Desktop\\opensslh\\")
+	print time.time() - t1
+	#load("C:\\Users\\Xu Zhengzi\\Desktop\\tt\\t1.txt","C:\\Users\\Xu Zhengzi\\Desktop\\tt\\t2.txt")
